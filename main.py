@@ -22,28 +22,23 @@ async def deploy_bot(
     owner_id: str = Form(...),
     session: str = Form("")
 ):
-    # 1. Unique ID aur Folder setup
-    user_id = bot_token.split(":")[0]
+    # ERROR FIX: Docker tags must be lowercase
+    user_id = bot_token.split(":")[0].lower() 
     repo_url = "https://github.com/Gxinfinity/Bot_Deploy.git"
     path = f"./bots/{user_id}"
 
     try:
-        # Puraana folder saaf karein agar hai toh
         if os.path.exists(path):
             shutil.rmtree(path)
         
-        # 2. GitHub se code clone karein
         os.system(f"git clone {repo_url} {path}")
 
-        # 3. Docker Image Build karein (Local build)
-        image_tag = f"bot_image_{user_id}"
-        print(f"Building image: {image_tag}")
+        # Fix: Tag is now lowercase
+        image_tag = f"bot_image_{user_id}".lower() 
         image, logs = docker_client.images.build(path=path, tag=image_tag, rm=True)
 
-        # 4. Container Run karein (Restart Always ke saath)
-        container_name = f"tg_bot_{user_id}"
+        container_name = f"tg_bot_{user_id}".lower()
         
-        # Purana container stop karein agar wahi bot firse deploy ho raha hai
         try:
             old_container = docker_client.containers.get(container_name)
             old_container.stop()
@@ -64,7 +59,7 @@ async def deploy_bot(
                 "STRING_SESSION": session
             }
         )
-        return {"status": "success", "message": f"Bhai, {category} Bot Live ho gaya!", "container_id": container.short_id}
+        return {"status": "success", "message": "Bhai, App se Bot Deploy ho gaya!", "id": container.short_id}
 
     except Exception as e:
         return {"status": "error", "message": str(e)}
